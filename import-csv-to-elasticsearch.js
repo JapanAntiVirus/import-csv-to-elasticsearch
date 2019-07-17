@@ -1,16 +1,16 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 const moment = require('moment');
-// const util = require(util);
+const util = require('util');
 var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
     hosts: ['http://localhost:9200']
 });
+client.index = util.promisify(client.index);
+var count = 1;
 
-var count = 0;
-
-function insert(client,row,r){
-    client.index({
+async function insert(client,row,r){
+    await client.index({
         index: row['_index'],
         // id: row['_id'],
         type: row['_type'],
@@ -55,8 +55,15 @@ client.ping({
                 r['channel_status'] = Number(r['channel_status']);
                 r['port'] = Number(r['port']);
                 r['createdDate'] = new Date(r['createdDate'].replace('th', '').replace('rd','').replace('st',''));
-                r['trafficAvgOut'] = Number(r['trafficAvgOut']);
-                r['trafficAvgIn'] = Number(r['trafficAvgIn']);
+                
+                if(r['trafficAvgOut'])
+                    r['trafficAvgOut'] = Number(r['trafficAvgOut']);
+                else
+                    delete r['trafficAvgOut']
+                if(r['trafficAvgIn'])
+                    r['trafficAvgIn'] = Number(r['trafficAvgIn']);
+                else
+                    delete r['trafficAvgIn'];
 
                 if(r['bandwidth_id']!=0)
                     insert(client,row,r);
