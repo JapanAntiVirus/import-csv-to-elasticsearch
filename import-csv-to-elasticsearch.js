@@ -10,21 +10,20 @@ client.index = util.promisify(client.index);
 var count = 1;
 
 async function insert(client,row,r){
-    await client.index({
-        index: row['_index'],
-        // id: row['_id'],
-        type: row['_type'],
-        body: r
-    }, function (err, resp, status) {
-        // console.log(resp);
-        if(err){
-            insert(client,row,r);
-        }
-        else{
-            console.log(resp);
-            console.log(`insert successfully ${count++} document`)
-        }
-    });
+    try{
+        let result = await client.index({
+            index: row['_index'],
+            // id: row['_id'],
+            type: row['_type'],
+            body: r
+        });
+        console.log(result)
+        console.log(`insert successfully ${count++} document`)
+    }
+    catch(err){
+        insert(client,row,r);
+    }
+
 }
 
 client.ping({
